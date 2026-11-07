@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Open Circuit</title>
+<meta name="description" content="A grid-free tower defense game. Bots follow a trace to your core; build anywhere the trace, voids and other towers leave room.">
+<meta name="theme-color" content="#0a0e15">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M2 17h6a4 4 0 0 0 4-4V9a4 4 0 0 1 4-4h6' stroke='%2331445f'/%3E%3Ccircle cx='19' cy='5' r='2.4' stroke='%238fd0ff'/%3E%3Ccircle cx='3.5' cy='17' r='1.6' stroke='%23ff6585'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;500;600&family=Syncopate:wght@700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header class="hud">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 17h6a4 4 0 0 0 4-4V9a4 4 0 0 1 4-4h6" stroke="#31445f"/><circle cx="19" cy="5" r="2.2" stroke="#8fd0ff"/><circle cx="3.5" cy="17" r="1.4" stroke="#ff6585"/></svg>
+      <span>OPEN CIRCUIT</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="k">Core</span><span class="v" id="vLives">20</span></div>
+      <div class="stat"><span class="k">Credits</span><span class="v" id="vCred">0</span></div>
+      <div class="stat"><span class="k">Wave</span><span class="v" id="vWave">0</span></div>
+      <div class="stat"><span class="k">Score</span><span class="v" id="vScore">0</span></div>
+    </div>
+    <div class="ctrls">
+      <button class="ib" id="bSpeed" title="Game speed (F, Shift+F or right-click to go back)">1x</button>
+      <button class="ib" id="bPause" title="Pause (Space)" aria-pressed="false">Pause</button>
+      <button class="ib" id="bQuit" title="Quit to map select">Quit</button>
+      <button class="ib" id="bSound" title="Sound" aria-pressed="true">Snd</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <div class="pill" id="pill" hidden>PAUSED</div>
+    <div class="hint" id="hint">Place anywhere off the trace. Right-click or Esc cancels.</div>
+
+    <section class="ov" id="ovMenu">
+      <div class="card">
+        <div class="eyebrow">Tower defense · free placement</div>
+        <h1>OPEN CIRCUIT</h1>
+        <p class="lede">Bots follow a trace to your core. There is no grid: build wherever the trace, the voids and your other towers leave room.</p>
+        <div class="row" id="diffRow" role="group" aria-label="Difficulty"><span class="eyebrow">Difficulty</span><button class="big" id="bStart" style="margin-left:auto">Start</button></div>
+        <div class="maps" id="maps"></div>
+        <div class="keys"><b>1–7</b> build · <b>click</b> a tower to inspect · <b>U</b> upgrade (selected or hovered tower) · <b>X</b> sell · <b>T</b> targeting · <b>N</b> next wave · <b>Space</b> pause · <b>F</b> speed. Best on a wide screen; on touch, tap once to aim and again to place.</div>
+      </div>
+    </section>
+
+    <section class="ov" id="ovOver" hidden>
+      <div class="card">
+        <div class="eyebrow">Core lost</div>
+        <h1 id="oTitle">Signal cut</h1>
+        <div class="res" id="oRes"></div>
+        <div class="row"><button class="big" id="bRetry">Retry</button><button class="big alt" id="bMenu">Maps</button></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="dock">
+    <div class="tray" id="tray"></div>
+    <div class="inspect" id="inspect" hidden></div>
+    <div class="wavebox">
+      <button class="wave" id="bWave">Send wave 1</button>
+      <div class="wrow"><span class="next" id="next"></span><label class="auto"><input type="checkbox" id="cAuto">Auto</label></div>
+    </div>
+  </footer>
+</div>
+<script src="game.js"></script>
+</body>
+</html>

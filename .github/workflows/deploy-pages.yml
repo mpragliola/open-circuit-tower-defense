@@ -1,0 +1,42 @@
+name: Deploy To GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check game script syntax
+        run: node --check game.js
+
+      # The game is static, so the site is the three source files. Nothing is built.
+      - name: Assemble site
+        run: |
+          mkdir dist
+          cp index.html style.css game.js dist/
+          touch dist/.nojekyll
+
+      # Publishes to the gh-pages branch of this repository only. GitHub serves a
+      # repository's gh-pages branch at /<repo-name>/, so other repositories'
+      # sites are never touched. keep_files stops the action from deleting files
+      # that are already on the branch.
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./dist
+          keep_files: true
