@@ -48,7 +48,16 @@ const MAPS = [
     obs: [[800,370,30,'h'],[500,550,30,'c'],[1100,550,30,'h'],[800,190,26,'c']] },
   { id: 'tangle', name: 'Tangle', tag: 'Chaos', blurb: 'Three crossings and a core buried in the middle. Towers at the junctions see everything.',
     lives: 16, credits: 300, hp: 1.1, poly: [[-60,110],[1050,110],[1050,770],[250,770],[250,330],[1400,330],[1400,630],[600,630],[600,220]], pr: 75,
-    obs: [[1300,200,36,'h'],[700,470,34,'c'],[120,600,38,'h'],[1450,780,40,'c'],[800,230,28,'h']] }
+    obs: [[1300,200,36,'h'],[700,470,34,'c'],[120,600,38,'h'],[1450,780,40,'c'],[800,230,28,'h']] },
+  { id: 'pentagram', name: 'Pentagram', tag: 'Star', blurb: 'Five razor points drawn in one stroke. Sharp 36° turns and a core at the centre.',
+    lives: 18, credits: 280, hp: 1.05, poly: [[-60,333],[1161,333],[577,757],[800,70],[1023,757],[800,450]], pr: 40,
+    obs: [[150,160,40,'h'],[1450,160,40,'c'],[150,780,40,'c'],[1450,780,40,'h'],[800,600,28,'h']] },
+  { id: 'lightning', name: 'Lightning', tag: 'Diagonal', blurb: 'Steep diagonal strikes top to bottom. Nothing runs at a right angle.',
+    lives: 20, credits: 260, hp: 1, poly: [[-60,60],[500,840],[800,60],[1100,840],[1400,60],[1250,450]], pr: 55,
+    obs: [[700,800,36,'h'],[1250,800,36,'c'],[100,700,38,'c'],[1500,600,38,'h']] },
+  { id: 'prism', name: 'Prism', tag: 'Spiral', blurb: 'A diamond spiral wound toward the centre. Every lane is slanted.',
+    lives: 20, credits: 270, hp: 0.95, poly: [[-60,450],[800,30],[1540,450],[800,870],[260,450],[800,170],[1280,450],[800,730],[460,450],[800,330],[1030,450],[800,450]], pr: 50,
+    obs: [[120,120,40,'h'],[1480,100,38,'c'],[120,800,38,'c'],[1480,800,40,'h']] }
 ];
 
 function polyPath(w, r) {
@@ -360,7 +369,7 @@ function update(dt) {
   for (const a of G.towers) {
     if (a.type !== 'amp') continue;
     const as = st(a);
-    for (const t of G.towers) if (t !== a && t.type !== 'amp' && dist(a.x, a.y, t.x, t.y) <= as.range + t.r) t.buff = Math.max(t.buff, 1 + as.boost);
+    for (const t of G.towers) if (t !== a && t.type !== 'amp' && dist(a.x, a.y, t.x, t.y) <= as.range + t.r) t.buff *= 1 + as.boost;
   }
   for (const e of G.enemies) e.slow = 0;
   for (const t of G.towers) {
@@ -833,10 +842,12 @@ function buildTray() {
   TKEYS.forEach(k => {
     const d = TOWERS[k], b = document.createElement('button');
     b.className = 'tb'; b.dataset.t = k; b.style.setProperty('--c', d.color); b.setAttribute('aria-pressed', 'false');
+    b.title = d.name + ' (' + d.key + ') · ' + d.cost + ' cr · ' + d.sub; b.setAttribute('aria-label', d.name + ', ' + d.cost + ' credits');
     b.appendChild(iconFor(k, 0));
     const w = document.createElement('div');
-    w.innerHTML = '<div class="nm">' + d.name + ' <kbd>' + d.key + '</kbd></div><div class="cost">' + d.cost + ' cr</div><div class="sub">' + d.sub + '</div>';
-    b.appendChild(w); tray.appendChild(b); trayBtns[k] = b;
+    w.className = 'cost'; w.textContent = d.cost;
+    const kb = document.createElement('kbd'); kb.textContent = d.key;
+    b.appendChild(w); b.appendChild(kb); tray.appendChild(b); trayBtns[k] = b;
   });
   tray.addEventListener('click', e => { const b = e.target.closest('.tb'); if (b) { audio(); setBuild(b.dataset.t); } });
 }
@@ -889,16 +900,16 @@ function inspectorHTML(t) {
   else if (t.type === 'amp') h += statHTML('Boost', s.boost, n.boost, pct);
   else if (t.type === 'lance') h += statHTML('Dmg/s', s.dps, n.dps, num) + statHTML('Max ramp', s.ramp, n.ramp, v => '×' + num(v));
   else h += statHTML('Damage', s.damage === undefined ? s.dmg : s.damage, n.dmg, num) + statHTML('Rate/s', s.rate, n.rate, num);
+  if (t.type !== 'amp') h += '<div class="istat"><span class="k">Amp bonus</span><span class="v">' + (t.buff > 1 ? '<i>+' + Math.round((t.buff - 1) * 100) + '%</i>' : '—') + '</span></div>';
   h += statHTML('Range', s.range, n.range, num);
   if (s.chain) h += statHTML('Chain', s.chain, n.chain, num);
   if (s.splash) h += statHTML('Splash', s.splash, n.splash, num);
   h += '<div class="istat"><span class="k">Kills</span><span class="v">' + t.kills + '</span></div></div><div class="iact">';
-  h += up === null ? '<button class="btn go" disabled style="--c:' + d.color + '">Maxed</button>'
-    : '<button class="btn go" data-act="up" style="--c:' + d.color + '"' + (G.credits < up ? ' disabled' : '') + '>Upgrade · ' + up + ' · U</button>';
   if (t.type !== 'stasis' && t.type !== 'amp') h += '<button class="btn" data-act="mode">Target: ' + MODE_LABEL[t.mode] + '</button>';
   h += '<button class="btn sell" data-act="sell">Sell +' + sellValue(t) + '</button><button class="btn" data-act="close">Done</button></div>';
   return h;
 }
+$('bUp').addEventListener('click', () => { const t = G.selected; if (t) actOn('up', t); else sfx('no'); });
 $('inspect').addEventListener('click', e => {
   const b = e.target.closest('[data-act]'), t = G.selected; if (!b || !t) return;
   actOn(b.dataset.act, t);
@@ -925,9 +936,14 @@ function syncUI() {
   TKEYS.forEach(k => { const b = trayBtns[k]; b.classList.toggle('poor', G.credits < TOWERS[k].cost); b.setAttribute('aria-pressed', G.build === k ? 'true' : 'false'); });
   const sel = G.selected && G.towers.includes(G.selected) ? G.selected : null;
   if (!sel) G.selected = null;
-  $('tray').hidden = !!sel; $('inspect').hidden = !sel;
+  $('inspect').hidden = !sel;
+  const bUp = $('bUp'), upc = sel ? upgradeCost(sel) : null;
+  const upTxt = !sel ? 'Upgrade · U' : upc === null ? 'Maxed' : 'Upgrade · ' + upc + ' · U';
+  if (bUp.textContent !== upTxt) bUp.textContent = upTxt;
+  bUp.disabled = !sel || upc === null || G.credits < upc;
+  bUp.style.setProperty('--c', sel ? TOWERS[sel.type].color : 'var(--stasis)');
   if (sel) {
-    const up = upgradeCost(sel), key = G.towers.indexOf(sel) + '|' + sel.lvl + '|' + sel.mode + '|' + sel.kills + '|' + (up !== null && G.credits >= up);
+    const up = upgradeCost(sel), key = G.towers.indexOf(sel) + '|' + sel.lvl + '|' + sel.mode + '|' + sel.kills + '|' + Math.round((sel.buff || 1) * 100) + '|' + (up !== null && G.credits >= up);
     if (key !== insKey) { insKey = key; $('inspect').innerHTML = inspectorHTML(sel); paintIcon($('inspect').querySelector('canvas'), sel.type, sel.lvl); }
   } else insKey = '';
   $('bWave').textContent = G.autoT > 0 ? 'Next wave in ' + Math.ceil(G.autoT) : 'Send wave ' + (G.wave + 1);
